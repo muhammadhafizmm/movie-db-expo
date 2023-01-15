@@ -7,7 +7,7 @@ const createStyle = () => {
     return StyleSheet.create({
         safeArea: {
             flex: 1,
-            alignItems: 'center'
+            alignItems: 'center',
         },
         main: {
             flex: 1,

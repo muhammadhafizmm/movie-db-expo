@@ -39,7 +39,10 @@ export default function App() {
   return (
     <NavigationContainer onReady={onLayoutRootView}>
       <RootContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Navigator screenOptions={{ 
+          headerShown: false,
+          contentStyle: { backgroundColor: 'white', position: 'relative' },
+        }}>
           <Stack.Screen name='movie-db-list' component={List} />
         </Stack.Navigator>
       </RootContainer>
