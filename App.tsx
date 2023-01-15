@@ -41,7 +41,7 @@ export default function App() {
       <RootContainer>
         <Stack.Navigator screenOptions={{ 
           headerShown: false,
-          contentStyle: { backgroundColor: 'white', position: 'relative' },
+          contentStyle: { backgroundColor: 'white', flex: 1 },
         }}>
           <Stack.Screen name='movie-db-list' component={List} />
         </Stack.Navigator>

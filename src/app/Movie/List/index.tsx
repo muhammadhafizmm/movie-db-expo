@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react"
-import { FlatList, Image, ListRenderItem, Platform, StyleSheet, Text, View } from "react-native"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { ActivityIndicator, FlatList, Image, ListRenderItem, Platform, StyleSheet, Text, View } from "react-native"
 import { getPopuler } from "../../../api"
 import { Font, Spacing, TextSize } from "../../../ui/token"
 
@@ -48,11 +48,12 @@ const createStyle = () => {
             marginLeft: Spacing.extratiny
         },
         listContainer: {
+            flex: 1,
             width: "90%",
             marginTop: Spacing.small
         },
         populerTVContainer: {
-            width: "100%",
+            flex: 1,
             display: "flex",
             flexDirection: 'row',
         },
@@ -70,8 +71,9 @@ const createStyle = () => {
             flex: 1,
         },
         populerTVTitle: {
+            flex: 0.7,
             fontFamily: Font.Bold,
-            fontSize: TextSize.title
+            fontSize: TextSize.title,
         },
         populerTVRating: {
             fontFamily: Font.Bold,
@@ -83,7 +85,16 @@ const createStyle = () => {
             alignItems: 'center',
             backgroundColor: '#FFEC4D',
             padding: Spacing.extratiny,
-            borderRadius: Spacing.extratiny
+            borderRadius: Spacing.extratiny,
+            justifyContent: 'space-between',
+            ...Platform.select({
+                web: {
+                    minWidth: 48,
+                },
+                native: {
+                    minWidth: 45
+                }
+            })
         },
         populerTVHeader: {
             display: "flex",
@@ -94,7 +105,7 @@ const createStyle = () => {
         footerMargin: {
             ...Platform.select({
                 web: {
-                    marginBottom: Spacing.xlarge
+                    marginBottom: Spacing.xlarge * 2.5
                 },
                 native: {
                     marginBottom: Spacing.xlarge * 2.5
@@ -114,16 +125,30 @@ type PopulerTV = {
 
 const List: React.FC<{}> = () => {
     const [populerTVData, setPopulerTVData] = useState<PopulerTV[]>([])
+    const [isLoading, setIsLoading] = useState<Boolean>(true)
+    const [pages, setPages] = useState<number>(1)
     const style = useMemo(() => createStyle(), [])
+
     useEffect(() => {
-        getPopuler().then((populerTVFetch) => {
-            setPopulerTVData(populerTVFetch.data.results)
+        getPopuler(pages).then((populerTVFetch) => {
+            setPopulerTVData((prevData) => [...prevData, ...populerTVFetch.data.results])
+            setIsLoading(false)
         })
-    }, [])
+    }, [pages])
+
+    const handleOnReachEnd = useCallback(() => {
+        if (!isLoading) {
+            setIsLoading(true)
+            setPages((prevPages) => prevPages + 1)
+        }
+    }, [isLoading, pages])
+
 
     const renderPopulerTVItems: ListRenderItem<PopulerTV> = ({ item }) => {
         const relaseDate = new Date(item.first_air_date)
         const formattedDate = moment(relaseDate).format('MMMM DD, YYYY')
+
+        const formatedVote = `${item.vote_average}`.length < 2 ? `${item.vote_average}.0` : item.vote_average
 
         return (
             <View style={style.populerTVContainer}>
@@ -138,9 +163,11 @@ const List: React.FC<{}> = () => {
                 <View style={style.populerTVInfo}>
                     <View style={style.populerTVHeader}>
                         <Text style={style.populerTVTitle}>{item.name}</Text>
-                        <View style={style.populerTVRatingContainer}>
-                            <Text style={style.populerTVRating}>{item.vote_average}</Text>
-                            <MaterialIcons name="star-rate" size={16} color="black" />
+                        <View>
+                            <View style={style.populerTVRatingContainer}>
+                                <Text style={style.populerTVRating}>{formatedVote}</Text>
+                                <MaterialIcons name="star-rate" size={16} color="black" />
+                            </View>
                         </View>
                     </View>
                     <Text>{formattedDate}</Text>
@@ -165,8 +192,16 @@ const List: React.FC<{}> = () => {
                     data={populerTVData}
                     renderItem={renderPopulerTVItems}
                     ItemSeparatorComponent={() => <Devider spacing={1} color={'#e7e7e7'}></Devider>}
-                    ListFooterComponent={<View style={style.footerMargin}></View>}
+                    ListFooterComponent={
+                        isLoading ? 
+                        <>
+                            <ActivityIndicator size="small" color="#0000ff" />
+                            <View style={style.footerMargin}></View>
+                        </> :
+                        <View style={style.footerMargin}></View>}
                     showsVerticalScrollIndicator={false}
+                    onEndReachedThreshold={0.2}
+                    onEndReached={handleOnReachEnd}
                 />
             </View>
         </View>

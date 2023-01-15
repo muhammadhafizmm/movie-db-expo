@@ -1,5 +1,5 @@
 import { httpGet } from "./http-common";
 
 export async function getPopuler(page?:number) {
-    return await httpGet('/tv/popular')
+    return await httpGet('/tv/popular', {page: page})
 }
