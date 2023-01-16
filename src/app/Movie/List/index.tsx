@@ -10,6 +10,7 @@ import Devider from "../../../ui/common/Devider";
 import { imagePath } from "../../../api/http-common";
 
 import moment from 'moment';
+import ListLoading, { ListLoadingItem } from "./ListLoading";
 
 
 const createStyle = () => {
@@ -105,10 +106,10 @@ const createStyle = () => {
         footerMargin: {
             ...Platform.select({
                 web: {
-                    marginBottom: Spacing.xlarge * 2.5
+                    marginBottom: Spacing.xlarge
                 },
                 native: {
-                    marginBottom: Spacing.xlarge * 2.5
+                    marginBottom: Spacing.xlarge * 0.5
                 }
             })
         }
@@ -127,17 +128,20 @@ const List: React.FC<{}> = () => {
     const [populerTVData, setPopulerTVData] = useState<PopulerTV[]>([])
     const [isLoading, setIsLoading] = useState<Boolean>(true)
     const [pages, setPages] = useState<number>(1)
+    const [lastPage, setLastPage] = useState<number>(0)
     const style = useMemo(() => createStyle(), [])
 
     useEffect(() => {
         getPopuler(pages).then((populerTVFetch) => {
             setPopulerTVData((prevData) => [...prevData, ...populerTVFetch.data.results])
+            setLastPage(populerTVFetch.data.total_pages)
             setIsLoading(false)
         })
     }, [pages])
 
+    // implement handleOnReachEnd
     const handleOnReachEnd = useCallback(() => {
-        if (!isLoading) {
+        if (!isLoading && pages <= lastPage) {
             setIsLoading(true)
             setPages((prevPages) => prevPages + 1)
         }
@@ -149,7 +153,10 @@ const List: React.FC<{}> = () => {
         const formattedDate = moment(relaseDate).format('MMMM DD, YYYY')
 
         const formatedVote = `${item.vote_average}`.length < 2 ? `${item.vote_average}.0` : item.vote_average
-
+        // not rendering populer tv items if item not have image
+        if (!item.backdrop_path || formattedDate === 'Invalid date') {
+            return null
+        }
         return (
             <View style={style.populerTVContainer}>
                 <View style={style.populerTVImageContainer}>
@@ -188,19 +195,37 @@ const List: React.FC<{}> = () => {
                 </View>
             </View>
             <View style={style.listContainer}>
+                {/* If Loading and populer tv data empty return shimmer list */}
+                { isLoading && populerTVData.length === 0 &&
+                    <View>
+                        <ListLoading/>
+                    </View>
+                }
                 <FlatList
                     data={populerTVData}
                     renderItem={renderPopulerTVItems}
-                    ItemSeparatorComponent={() => <Devider spacing={1} color={'#e7e7e7'}></Devider>}
+                    ItemSeparatorComponent={(item) => {
+                        // not rendering devider if item not have image
+                        if (
+                            !item.leadingItem.backdrop_path || 
+                            !item.leadingItem.first_air_date
+                        ) {
+                            return null
+                        }
+                        return <Devider spacing={1} color={'#e7e7e7'}></Devider>
+                    }}
                     ListFooterComponent={
-                        isLoading ? 
+                        // implement shimmer for end of list if next page exist
+                        pages <= lastPage ? 
                         <>
-                            <ActivityIndicator size="small" color="#0000ff" />
+                            <Devider spacing={1} color={'#e7e7e7'}></Devider>
+                            <ListLoadingItem/>
+                            <ActivityIndicator/>
                             <View style={style.footerMargin}></View>
                         </> :
                         <View style={style.footerMargin}></View>}
                     showsVerticalScrollIndicator={false}
-                    onEndReachedThreshold={0.2}
+                    onEndReachedThreshold={0.01}
                     onEndReached={handleOnReachEnd}
                 />
             </View>

@@ -27,8 +27,9 @@ export default function App() {
 
   const onLayoutRootView = useCallback(async () => {
     if (isAppReady) {
-      await new Promise(resolve => setTimeout(resolve, 100))
-      await SplashScreen.hideAsync()
+      setTimeout(() => {
+        SplashScreen.hideAsync()
+      }, 2000)
     }
   }, [isAppReady])
 
