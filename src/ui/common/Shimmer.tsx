@@ -48,7 +48,7 @@ const Shimmer: React.FC<{ width: number, height: number }> = ({ width, height })
                     });
                 }
             }}>
-            {positionX !== null && (
+            {positionX !== null && !isNaN(positionX) && (
                 <Animated.View
                     style={{
                         flex: 1,
