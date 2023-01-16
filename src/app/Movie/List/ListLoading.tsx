@@ -1,5 +1,4 @@
 import { Platform, StyleSheet, View } from "react-native";
-import ShimmerPlaceHolder from 'react-native-shimmer-placeholder'
 import Devider from "../../../ui/common/Devider";
 import Shimmer from "../../../ui/common/Shimmer";
 import { Spacing, TextSize } from "../../../ui/token";
