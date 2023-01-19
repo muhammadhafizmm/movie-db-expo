@@ -11,9 +11,33 @@ import { useFonts } from 'expo-font'
 import * as SplashScreen from 'expo-splash-screen';
 
 import RootContainer from './src/app/RootContainer';
-import List from './src/app/Movie/List';
+import ListMovie from './src/app/Movie/List';
+import DetailMovie from './src/app/Movie/Detail';
 
-const Stack = createNativeStackNavigator();
+
+const linking = {
+  prefixes: ['https://localhost:8000/', 'myapps://'],
+  config: {
+    screens: {
+      "movie-db-list": {
+        path: '/',
+      },
+      "movie-detail": {
+        path: '/detail/:movieId',
+        parse: {
+          movieId: String,
+        },
+      }
+    },
+  },
+};
+
+export type RootStackParamList = {
+  "movie-db-list": undefined
+  "movie-detail": { movieId: number }
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   const [isAppReady] = useFonts(customFont)
@@ -38,13 +62,18 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer onReady={onLayoutRootView}>
+    <NavigationContainer linking={linking} onReady={onLayoutRootView}>
       <RootContainer>
-        <Stack.Navigator screenOptions={{ 
+        <Stack.Navigator screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: 'white', flex: 1 },
+           animation: 'none'
         }}>
-          <Stack.Screen name='movie-db-list' component={List} />
+          <Stack.Screen name='movie-db-list' component={ListMovie} />
+          <Stack.Screen
+            name="movie-detail"
+            component={DetailMovie}
+          />
         </Stack.Navigator>
       </RootContainer>
     </NavigationContainer>

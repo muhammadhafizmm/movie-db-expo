@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { ActivityIndicator, FlatList, Image, ListRenderItem, Platform, StyleSheet, Text, View } from "react-native"
+import { ActivityIndicator, FlatList, Image, ListRenderItem, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 import { getPopuler } from "../../../api"
 import { Font, Spacing, TextSize } from "../../../ui/token"
 
@@ -11,6 +11,9 @@ import { imagePath } from "../../../api/http-common";
 
 import moment from 'moment';
 import ListLoading, { ListLoadingItem } from "./ListLoading";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../../../../App";
+import { PopulerTV } from "../types";
 
 
 const createStyle = () => {
@@ -116,15 +119,9 @@ const createStyle = () => {
     })
 }
 
-type PopulerTV = {
-    name: string
-    vote_average: string
-    first_air_date: string
-    backdrop_path: string
-    poster_path: string
-}
+interface Props extends NativeStackScreenProps<RootStackParamList, "movie-db-list"> {}
 
-const List: React.FC<{}> = () => {
+const ListMovie: React.FC<Props> = ({ navigation }) => {
     const [populerTVData, setPopulerTVData] = useState<PopulerTV[]>([])
     const [isLoading, setIsLoading] = useState<Boolean>(true)
     const [pages, setPages] = useState<number>(1)
@@ -158,7 +155,14 @@ const List: React.FC<{}> = () => {
             return null
         }
         return (
-            <View style={style.populerTVContainer}>
+            <TouchableOpacity 
+                style={style.populerTVContainer}
+                onPress={() => {
+                    navigation.navigate("movie-detail", {
+                        movieId: item.id
+                    })
+                }}
+            >
                 <View style={style.populerTVImageContainer}>
                     <Image
                         style={style.populerTVImage}
@@ -179,7 +183,7 @@ const List: React.FC<{}> = () => {
                     </View>
                     <Text>{formattedDate}</Text>
                 </View>
-            </View>
+            </TouchableOpacity>
         )
     }
 
@@ -233,4 +237,4 @@ const List: React.FC<{}> = () => {
     )
 }
 
-export default List
+export default ListMovie
